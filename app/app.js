@@ -1,13 +1,9 @@
 var it = {};
 
-var app = angular.module('TempleRides', ['firebase','pascalprecht.translate','ngAnimate','ngResource','ngRoute','ngTouch','ui.calendar'])
+var app = angular.module('LdsWardInfo', ['firebase','pascalprecht.translate','ngAnimate','ngResource','ngRoute','ngTouch','ui.calendar'])
 .config(function($routeProvider,$translateProvider) {
 	$routeProvider
 
-	.when('/signup/:id/:email', {
-		templateUrl: 'views/signup.html',
-		controller: 'MainCtrl'
-	})
 	.when('/:view', {
 		templateUrl: 'views/main.html',
 		controller: 'MainCtrl'
@@ -33,5 +29,5 @@ var app = angular.module('TempleRides', ['firebase','pascalprecht.translate','ng
 
 
 angular.element(document).ready(function() {
-	angular.bootstrap(document, ['TempleRides']);
+	angular.bootstrap(document, ['LdsWardInfo']);
 });

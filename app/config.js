@@ -1,15 +1,13 @@
 app.factory('config', function ($rootScope, $http) {
 	var config = {
-		gasRoot: 			'http://api.mygasfeed.com/',
-		gasKey: 			'95ew4xcw7d',
-		fireRoot: 			'https://templerides.firebaseio.com/',
-		fireRef: 			new Firebase('https://templerides.firebaseio.com/'),
+		fireRoot: 			'https://ldswardinfo.firebaseio.com/',
+		fireRef: 			new Firebase('https://ldswardinfo.firebaseio.com/'),
 		parseRoot: 			'https://api.parse.com/1/',
-	 	parseAppId: 		'VIwWYPh1DQoLbJdu6ETFL1MgaZcO9zvpaJ9legsc',
-	 	parseJsKey: 		'NFgpQBYDdx8wYnzPvmAm2HroVNIGoz7nnXgc2FRC',
-	 	parseRestApiKey: 	'PvINlULcuLpXBNPghG3JB2OazOlLAqCC3rYBvEpo',
-	 	googleApiKey: 		'AIzaSyD4O7s4iclMErDpCyKZ__VtjfNd-LcYKhg',
-	 	roles: 				['Admin','Moderator','Editor','ValidUser','BlockedUser'],
+	 	parseAppId: 		'muk3Od6KYbcuHGuvkHQi09mdxYVjjSglkUeHrud8',
+	 	parseJsKey: 		'q2A4cUHFyHLl2UcI3CRCIDkXsKxL8xln6LDm92tA',
+	 	parseRestApiKey: 	'MyyuRPK5Qqth07iWKJnxBegqj7URRzPd4LSNxO82',
+	 	googleApiKey: 		'AIzaSyCdziJUzU0g7gUs3T-b3YBX1CipHwQybSM',
+	 	roles: 				['Admin','Support','Leadership','Member','BlockedUser'],
 
 	 	dataLink: {
 	 		app: 				"Member Datalink",

@@ -1,26 +1,24 @@
+// Prerequisits?
+// - (Do a member data-sync)
+// Flow:
+// - Login > Load member info
+// - Allow filters, tools, 
+
+
 var MainCtrl = app.controller('MainCtrl', function($rootScope, $scope, $routeParams, $location, $http, config, userService, geoService){
 	$rootScope.action = $routeParams.action;
 	$rootScope.view = $routeParams.view;
 	$rootScope.id = $routeParams.id;
-	$rootScope.email = $routeParams.email;
 	$rootScope.config = config;
 
 	function setup(){
-		$http.get('/assets/json/temples.json').success(function(data){
-			$rootScope.templeList = data.temples;
-		})
 		$scope.$on('$viewContentLoaded', function(event) {
-			ga('send', 'pageview', $location.path());
-		});
+			// ga('send', 'pageview', $location.path());
+			});
 	}
 
 	var tools = {
 		user: userService,
-		setGeo:function(geo){
-			if(!$rootScope.temp.user)
-				$rootScope.temp.user = {};
-			$rootScope.temp.user.geo = geoService.parsePoint(geo);
-		},
 		url:function(){
 			if($rootScope.user || $routeParams.view == 'about' || $routeParams.view == 'signup')
 				return 'views/'+$routeParams.view+'.html';
@@ -55,77 +53,28 @@ var MainCtrl = app.controller('MainCtrl', function($rootScope, $scope, $routePar
 			// tools.side.set('left','partials/shoeboxlist/sidebar.html')
 			// tools.side.set('right','partials/sidebar.html')
 		},
-		getInvite:function(){
-			$routeParams.id
-			$routeParams.email
-			if($routeParams.id && $routeParams.email)
-				$http.post(config.parseRoot+'functions/dataFromInvite', {token: $routeParams.id, email: $routeParams.email})
-				.success(function(response){
-					it.dataFromInvite = response;
-					var u = response.result;
-					$rootScope.temp.user = {
-						emailNotifications: true,
-						firstName: 	u.firstName,
-						lastName: 	u.lastName,
-						phone: 		u.phone,
-						address: 	u.address,
-						email:  	u.email
-					};
-					if(u.geo)
-						$rootScope.temp.user.geo = {
-							__type: 	"GeoPoint",
-							latitude: 	u.geo.latitude,
-							longitude: 	u.geo.longitude
-						}
-				}).error(function(response){
-					console.log('dataFromInvite error: ', response)
-				})
-		},
 		signup:function(user){
-			user.token=$routeParams.id;
-			if($routeParams.email)
-				user.email=$routeParams.email;
 			tools.user.signup(user)
 		},
-		accountInit: function(){
-			$rootScope.temp.user = angular.fromJson(angular.toJson($rootScope.user))
-			for(var i=0; i<$rootScope.templeList.length; i++)
-				if($rootScope.templeList[i].link == $rootScope.temp.user.temple.link)
-					$rootScope.temp.user.temple = $rootScope.templeList[i]
-		},
-		settings:function(user){
-			var us = {}
-				us.emailNotifications = user.emailNotifications
-				us.phoneNotifications = user.phoneNotifications
-			if(user.phone)
-				us.phone = user.phone
-			if(user.address)
-				us.address = user.address
-			if(user.email)
-				us.email = user.email
-			if(user.temple)
-				us.temple = user.temple
-			$http.put(config.parseRoot+'users/'+$rootScope.user.objectId, us).success(function(data){
-				$rootScope.error = null;
-				$rootScope.success = data;
-			}).error(function(error){
-				$rootScope.error = error;
-			})
-		},
-		invite: function(invitation){
-			invitation.status = 'sending';
-			$http.post(config.parseRoot+'classes/invitations', invitation)
-			.success(function(response){
-				console.log('invitation success: ', response);
-				invitation.status='active';
-			})
-			.error(function(response){
-				console.log('invitation error: ', response);
-			})
-		},
-		clearInvite:function(){
-			$rootScope.temp.invitation = {};
-		}
+		// settings:function(user){
+		// 	var us = {}
+		// 		us.emailNotifications = user.emailNotifications
+		// 		us.phoneNotifications = user.phoneNotifications
+		// 	if(user.phone)
+		// 		us.phone = user.phone
+		// 	if(user.address)
+		// 		us.address = user.address
+		// 	if(user.email)
+		// 		us.email = user.email
+		// 	if(user.temple)
+		// 		us.temple = user.temple
+		// 	$http.put(config.parseRoot+'users/'+$rootScope.user.objectId, us).success(function(data){
+		// 		$rootScope.error = null;
+		// 		$rootScope.success = data;
+		// 	}).error(function(error){
+		// 		$rootScope.error = error;
+		// 	})
+		// },
 	}
 	$scope.tools = tools;
 	$rootScope.mainTools = tools;
@@ -146,32 +95,8 @@ var MainCtrl = app.controller('MainCtrl', function($rootScope, $scope, $routePar
 
 
 var RideCtrl = app.controller('RideCtrl', function($rootScope, $scope, $q, $sce, $http, config, settings, dataService, userService){
-	console.log('RIDE CONTROLLER')
 	$scope.moment = moment;
 	$scope.warnings = {};
-	$scope.futureFilter = function (event) {
-        return event.ends >= new Date();
-    };
-    
-
-
-	$scope.formated = {
-		driver: {
-			color: settings.colors.background.driver,
-			textColor: settings.colors.font.driver,
-			events: []
-		},
-		passenger: {
-			color: settings.colors.background.passenger,
-			textColor: settings.colors.font.passenger,
-			events: []
-		},
-		other: {
-			color: settings.colors.background.other,
-			textColor: settings.colors.font.other,
-			events: []
-		}
-	}
 
 	var allRides = $q.defer();
 	userService.user().then(function(user){
@@ -213,287 +138,10 @@ var RideCtrl = app.controller('RideCtrl', function($rootScope, $scope, $q, $sce,
 	var tools = {
 		say:function(message){
 			alert(message)
-		},
-		formatRides: function(rides, type){
-			var rideList = [];
-			if(rides)
-				for(var i=0; i<rides.length; i++){
-					var tRide = angular.fromJson(angular.toJson(rides[i]))
-
-					tRide.title 	= tRide.temple;
-					tRide.type 		= type;
-					tRide.starts 	= new Date(tRide.date+' '+tRide.leaving);
-					tRide.ends 		= new Date(tRide.date+' '+tRide.returning);
-					tRide.start 	= new Date(tRide.date+' '+tRide.leaving);
-					tRide.end 		= new Date(tRide.date+' '+tRide.returning);
-					tRide.allDay 	= false;
-
-					rideList.push(tRide);
-				}
-			return rideList;
-		},
-		ride:{
-			ind: function(){
-				allRidesPromise.then(function(rideResource){
-					$rootScope.$on(rideResource.listenId, function(event, data){
-						tools.ride.get($rootScope.id).then(function(ride){
-							$scope.ride = ride;
-							if(ride.type=='driver')
-								tools.ride.passengerList(ride);
-						})
-					});
-				});
-			},
-			get: function(rideId){
-				var ride = $q.defer();
-				allRidesPromise.then(function(rideResource){
-					var rideTypes = ['driver','passenger','other']
-					var rides = $scope.formated;
-					for(var t=0; t<rideTypes.length; t++){
-						var list = rides[rideTypes[t]].events;
-						for(var i=0; i<list.length; i++){
-							if(list[i].objectId == rideId){
-								list[i].type = rideTypes[t];
-								ride.resolve(list[i]);
-							}
-						}
-					}
-				})
-				return ride.promise;
-			},
-			display: function(ride){
-				if(ride.type=='driver'){
-					var passengers = ride.seats-ride.seatsAvail;
-					if(passengers == 0)
-						return 'No one is going yet, but you have set up a ride for '+moment(ride.starts).format('dddd MMMM Do [at] h:mm a');
-					else if(passengers == 1)
-						return 'You are giving a ride to one person '+moment(ride.starts).format('dddd MMMM Do [at] h:mm a');
-					else
-						return 'You are giving a ride to '+(ride.seats-ride.seatsAvail)+' people '+moment(ride.starts).format('dddd MMMM Do [at] h:mm a');
-				}else if(ride.type=='passenger')
-					return 'You will be picked up to go to the temple: '+moment(ride.starts).format('dddd MMMM Do [at] h:mm a');
-				else 
-					return 'A ride to the '+ride.temple+' is available: '+moment(ride.starts).format('dddd MMMM Do [at] h:mm a');
-			},
-			focus: function(ride){
-				$scope.temp.reservationStatus = null;
-				$rootScope.temp.focus = ride;
-				$rootScope.mainTools.side.set('right','partials/side/'+ride.type+'.html');
-				// console.log(ride.type)
-				if(ride.type=='driver')
-					tools.ride.passengerList(ride);
-			},
-			add: function(ride){
-				if(ride){
-					if(!ride.date)
-						$scope.warnings.date = 'You must specify the day you will go to the temple.'
-					else
-						delete $scope.warnings.date
-
-					if(new Date(ride.date+' '+ride.leaving) > new Date(ride.date+' '+ride.returning))
-						$scope.warnings.leaveReturn = 'You must leave before you return.'
-					else
-						delete $scope.warnings.leaveReturn
-
-					if(!ride.temple)
-						$scope.warnings.temple = 'You must specify the temple you will be attending.'
-					else
-						delete $scope.warnings.temple
-
-					if(!ride.seats)
-						$scope.warnings.seats = 'You must specify the number of seats available.'
-					else
-						delete $scope.warnings.seats
-				}
-				if(angular.toJson($scope.warnings) == "{}"){
-					ride.timestamp = new Date(ride.date+' '+ride.leaving).getTime();
-					ride.status = 'active';
-					ride.temple = ride.temple.name;
-					tools.gas.station().then(function(station){
-						ride.gasPrice = station.reg_price;
-						ride.miles = $rootScope.temp.gas.miles;
-						ride.passengerSavings = $rootScope.temp.gas.savings;
-						ride.possibleSavings = ride.passengerSavings * ride.seats;
-						allRidesPromise.then(function(rideResource){
-							rideResource.item.save(ride)
-							$scope.temp.ride = {};
-						})
-					})
-				}
-			},
-			remove: function(ride){
-				var infoToSave = {
-					objectId: ride.objectId,
-					status: 'removed'
-				}
-				if(confirm('Are you sure you want to delete this ride?')){
-					allRidesPromise.then(function(rideResource){
-						rideResource.item.save(infoToSave)
-					})
-					$scope.temp.ride = {};
-				}
-			},
-			reserve: function(ride){
-				$scope.temp.reservationStatus = 'processing';
-				$http.post(config.parseRoot+'functions/joinRide', {objectId: ride.objectId}).then(function(response){
-					if(response.data.result && response.data.result.updatedAt){
-						$scope.temp.reservationStatus = 'reserved';
-						allRidesPromise.then(function(rideResource){
-							rideResource.broadcast(response.data.result.updatedAt)
-							$rootScope.mainTools.side.set('right');
-						})
-					}else{
-						$scope.temp.reservationStatus = 'error';
-					}
-				})
-			},
-			cancelReservation: function(ride){
-				$scope.temp.reservationStatus = 'processing';
-				$http.post(config.parseRoot+'functions/leaveRide', {objectId: ride.objectId}).then(function(response){
-					if(response.data.result && response.data.result.updatedAt){
-						$scope.temp.reservationStatus = 'canceled';
-						allRidesPromise.then(function(rideResource){
-							rideResource.broadcast(response.data.result.updatedAt)
-							$rootScope.mainTools.side.set('right');
-						})
-					}else{
-						$scope.temp.reservationStatus = 'error';
-					}
-				})
-			},
-			list: function(){
-				$http.post(config.parseRoot+'functions/rideList', {}).then(function(response){
-					console.log('Ride List Response: ', response)
-				})
-			},
-			passengerList: function(ride){
-				$http.post(config.parseRoot+'functions/passengerList', {objectId: ride.objectId}).then(function(response){
-					var passengers = response.data.result;
-					$scope.temp.passengers = passengers;
-					var details = '?'
-								+ 'key=' + config.googleApiKey
-								+ '&origin='+$rootScope.user.geo.latitude+','+$rootScope.user.geo.longitude
-								+ '&destination='+ride.temple
-					if(passengers.length>0){
-						var waypoints = passengers[0].geo.latitude+','+passengers[0].geo.longitude;
-						for(var i=1; i<passengers.length; i++)
-							waypoints += '|' + passengers[i].geo.latitude+','+passengers[i].geo.longitude;
-						details += '&waypoints='+waypoints;
-					}
-					var mapUrl 	= 'https://www.google.com/maps/embed/v1/directions'+details
-					$rootScope.mapUrl = $sce.trustAsResourceUrl(mapUrl);
-				})
-			}
-		},
-		time: {
-			calculate: function(){
-				var tRide 	= $scope.temp.ride
-				var session = new Date(tRide.date+' '+tRide.session)
-				var prior 	= $scope.temp.tripTime + 30*60;
-				var duration= $scope.temp.tripTime * 2 + (30 * 60) + (2 * 60 * 60);
-				var after 	= duration - prior;
-				$rootScope.temp.suggestedLeave 	= moment(session).subtract(moment.duration(prior*1000))
-				$rootScope.temp.suggestedReturn = moment(session).add(moment.duration(after*1000))
-			},
-			setLeave: function(){
-				$rootScope.temp.ride.leaving = $rootScope.temp.suggestedLeave.format("HH:mm")
-			},
-			setReturn: function(){
-				$rootScope.temp.ride.returning = $rootScope.temp.suggestedReturn.format("HH:mm")
-			}
-		},
-		gas: {
-			setSavings: function(temple){
-				var geo = $rootScope.user.geo
-				var request = {
-					origin: 		geo.latitude+','+geo.longitude,
-					destination: 	temple.name+' temple'
-				}
-				$http.post(config.parseRoot+'functions/distance', request).then(function(directions){
-					if(directions.data.result.routes.length >0){
-						var miles = directions.data.result.routes[0].legs[0].distance.value * .000621371;
-						var seconds = directions.data.result.routes[0].legs[0].duration.value;
-						// var thereSessionAndBack = seconds * 2 + (30 * 60) + (2 * 60 * 60);
-						$scope.temp.tripTime = seconds;
-						tools.gas.savings(miles);
-					}else{
-						console.log('Hmmmmm Not sure about this trip.')
-					}
-				});
-			},
-			savings: function(miles){
-				var mpg = {
-					sm: 24,
-					md: 20,
-					lg: 17
-				}
-				return tools.gas.station().then(function(station){
-					var savings = station.reg_price * miles / mpg.sm;
-					$rootScope.temp.gas.savings = Math.floor(savings);
-					$rootScope.temp.gas.miles = Math.ceil(miles);
-					return savings;
-				})
-			},
-			station: function(){
-				var station = $q.defer();
-				if($rootScope.temp.gas)
-					station.resolve($rootScope.temp.gas)
-				else
-					tools.gas.stations().then(function(results){
-						$rootScope.temp.gas = results.stations[0];
-						station.resolve($rootScope.temp.gas)
-					})
-				return station.promise;
-			},
-			stations: function(){
-				var stations = $q.defer();
-				var geo = $rootScope.user.geo
-				var url = config.gasRoot+'stations/radius/'+geo.latitude+'/'+geo.longitude+'/10/reg/price/'+config.gasKey+'.json?callback=JSON_CALLBACK'
-				$http.jsonp(url).success(function(results){
-					stations.resolve(results)
-				})
-				return stations.promise;
-			}
-		},
-		temple:{
-			set:function(){
-				var temple = $rootScope.temp.ride.temple;
-				tools.gas.setSavings(temple)
-				// $rootScope.templeLink = $sce.trustAsResourceUrl(temple.link+'#primary-details');
-				$rootScope.templeLink = $sce.trustAsResourceUrl(temple.link+'#schedule-section');
-				$rootScope.mainTools.side.set('right', 'partials/side/temple.html');
-			}
 		}
 	}
-
-	$scope.uiConfig = {
-		calendar:{
-			height: 450,
-			editable: false,
-			header:{
-				left: 'title',
-				center: '',
-				right: 'today prev,next'
-			},
-			eventClick: function(obj, e){
-				tools.ride.focus(obj)
-			},
-			eventDrop: $scope.alertOnDrop,
-			eventResize: $scope.alertOnResize,
-			viewRender: function(view, element) {
-				console.log("View Changed: ", view.visStart, view.visEnd, view.start, view.end);
-			}
-		}
-	};
-	$scope.eventSources = [$scope.formated.driver, $scope.formated.passenger, $scope.formated.other];
+	
 	$scope.tools = tools;
-
-	$rootScope.$on('geoChange', function(event, geo) {
-		allRidesPromise.then(function(rideResource){
-			rideResource.loadData();
-		})
-	});
-
 	it.RideCtrl=$scope;
 });
 
