@@ -14,6 +14,7 @@ app.factory('userService', function ($rootScope, $http, $q, config) {
  		init:function(){
  			if(localStorage.user){
 				var localUser = angular.fromJson(localStorage.user);
+				Parse.User.become(localUser.sessionToken)
 				$http.defaults.headers.common['X-Parse-Session-Token'] = localUser.sessionToken;
 			}
  			$http.get(config.parseRoot+'users/me').success(function(data){
@@ -35,6 +36,7 @@ app.factory('userService', function ($rootScope, $http, $q, config) {
  				password:user.password
  			}
  			$http.get(config.parseRoot+"login", {params: login}).success(function(data){
+ 				Parse.User.become(data.sessionToken);
  				$http.defaults.headers.common['X-Parse-Session-Token'] = data.sessionToken;
  				localStorage.user=angular.toJson(data);
  				$rootScope.user=data;
@@ -48,6 +50,7 @@ app.factory('userService', function ($rootScope, $http, $q, config) {
  		logout:function(){
  			localStorage.clear();
  			$rootScope.user=null;
+ 			Parse.User.logOut()
  		}
  	}
 	it.userService = userService;
@@ -57,6 +60,38 @@ app.factory('userService', function ($rootScope, $http, $q, config) {
 
 
 
+
+
+
+
+
+app.factory('directoryService', function ($rootScope, $http, $q, config, userService) {
+	var directory = false;
+	var directoryService = {
+		init:function(){
+			var deferred = $q.defer();
+			userService.user().then(function(){
+				if(localStorage.directory){
+					directory = angular.fromJson(localStorage.directory)
+					deferred.resolve(directory);
+				}else{
+					$http.get(config.parseRoot+'classes/Family?limit=900')
+					.success(function(data){
+						directory = data.results;
+						localStorage.directory = angular.toJson(directory)
+						deferred.resolve(directory);
+					})
+				}
+			})
+			return deferred.promise;
+		},
+		list:function(){
+			return directoryService.init();
+		}
+	}
+	it.directoryService = directoryService;
+	return directoryService;
+});
 
 
 

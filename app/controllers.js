@@ -28,26 +28,61 @@ var MainCtrl = app.controller('MainCtrl', function($rootScope, $scope, $routePar
 
 
 
-var DirectoryCtrl = app.controller('DirectoryCtrl', function($rootScope, $scope, $routeParams, $location, $http, config, userService){
-
+var DirectoryCtrl = app.controller('DirectoryCtrl', function($rootScope, $scope, $routeParams, $location, $http, config, userService, directoryService){
 	var tools = {
 		init:function(){
-			if(!$scope.directory){
-				userService.user().then(function(){
-					if(localStorage.directory){
-						$scope.directory = angular.fromJson(localStorage.directory)
-					}else{
-						$http.get(config.parseRoot+'classes/Family?limit=900')
-						.success(function(data){
-							localStorage.directory = angular.toJson(data.results)
-							$scope.directory = data.results;
-						})
-					}
-				})
+			directoryService.list().then(function(directory){
+				$scope.directory = directory;
+			})
+		},
+		family:{
+			show:function(family){
+				$scope.family = family;
+				$('#familyModal').modal('show');
+			},
+			map:function(family){
+				if(family){
+					var latLng = family.householdInfo.address.latitude+','+family.householdInfo.address.longitude;
+					var markers = latLng
+					var size = '600x300'
+					var zoom = 14
+					var url = 'https://maps.googleapis.com/maps/api/staticmap?'
+						+'center='+latLng
+						+'&zoom='+zoom
+						+'&size='+size
+						+'&markers='+markers;
+					return(url)
+				}else{
+					return false;
+				}
 			}
 		}
 	}
 	$scope.tools = tools;
 	tools.init();
 	it.DirectoryCtrl=$scope;
+});
+
+
+var MapCtrl = app.controller('MapCtrl', function($rootScope, $scope, $routeParams, $location, $http, config, userService, directoryService){
+	var tools = {
+		init:function(){
+			directoryService.list().then(function(directory){
+				console.log(directory)
+				$scope.directory = directory;
+				function initialize() {
+					var mapOptions = {
+						center: { lat: -34.397, lng: 150.644},
+						zoom: 8
+					};
+					var map = new google.maps.Map(document.getElementById('map-canvas'),
+						mapOptions);
+				}
+				google.maps.event.addDomListener(window, 'load', initialize);
+			})
+		}
+	}
+	$scope.tools = tools;
+	tools.init();
+	it.MapCtrl=$scope;
 });
