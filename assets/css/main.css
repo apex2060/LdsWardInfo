@@ -1,9 +1,16 @@
 /*CUSTOM*/
-html{
-	overflow: hidden;
-}
 html,body{
 	height: 100%;
 	padding: 0px;
 	margin: 0px;
+}
+header{
+	position: fixed;
+	width: 100%;
+}
+section{
+	padding: 50px 0 50px 0;
+}
+a{
+	cursor: pointer;
 }

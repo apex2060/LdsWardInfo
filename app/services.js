@@ -25,7 +25,7 @@ app.factory('userService', function ($rootScope, $http, $q, config) {
  			}).error(function(){
 				//Prompt for login
 			});
- 		}
+ 		},
  		loginModal:function(){
  			$('#userLoginModal').modal('show');
  		},

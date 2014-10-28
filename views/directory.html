@@ -1,6 +1,26 @@
 <div class="container" ng-controller="DirectoryCtrl">
-	<div class="well clearfix">
-		<h1>Directory</h1>
-		{{directory}}
-	</div>
+	<h1>Directory</h1>
+	<table class="table table-hover">
+		<thead>
+			<tr>
+				<th>Family Name</th>
+				<th>Phone</th>
+				<th>Email</th>
+				<th>Address</th>
+				<th>Tools</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="family in directory | orderBy: 'householdInfo.name'">
+				<td>{{family.householdInfo.name}}</td>
+				<td>{{family.householdInfo.phone}}</td>
+				<td>{{family.householdInfo.email}}</td>
+				<td>{{family.householdInfo.address.addr1}}</td>
+				<td><a>Tools</a></td>
+			</tr>
+			<!-- <tr>
+				<td colspan="5">Add A Family</td>
+			</tr> -->
+		</tbody>
+	</table>
 </div>

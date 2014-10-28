@@ -1,7 +1,7 @@
 var it = {};
 
 var app = angular.module('LdsWardInfo', ['ngAnimate','ngResource','ngRoute','ngTouch'])
-.config(function($routeProvider,$translateProvider) {
+.config(function($routeProvider) {
 	$routeProvider
 
 	.when('/:view', {

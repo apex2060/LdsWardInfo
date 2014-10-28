@@ -4,6 +4,7 @@ var MainCtrl = app.controller('MainCtrl', function($rootScope, $scope, $routePar
 	$rootScope.config = config;
 
 	var tools = {
+		user: userService,
 		url:function(){
 			if($rootScope.user || $routeParams.view == 'about' || $routeParams.view == 'home')
 				return 'views/'+$routeParams.view+'.html';
@@ -33,10 +34,15 @@ var DirectoryCtrl = app.controller('DirectoryCtrl', function($rootScope, $scope,
 		init:function(){
 			if(!$scope.directory){
 				userService.user().then(function(){
-					$http.get(config.parseRoot+'classes/Family?limit=900')
-					.success(function(data){
-						$scope.directory = data;
-					})
+					if(localStorage.directory){
+						$scope.directory = angular.fromJson(localStorage.directory)
+					}else{
+						$http.get(config.parseRoot+'classes/Family?limit=900')
+						.success(function(data){
+							localStorage.directory = angular.toJson(data.results)
+							$scope.directory = data.results;
+						})
+					}
 				})
 			}
 		}
