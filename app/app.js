@@ -1,6 +1,6 @@
 var it = {};
 
-var app = angular.module('LdsWardInfo', ['firebase','pascalprecht.translate','ngAnimate','ngResource','ngRoute','ngTouch','ui.calendar'])
+var app = angular.module('LdsWardInfo', ['ngAnimate','ngResource','ngRoute','ngTouch'])
 .config(function($routeProvider,$translateProvider) {
 	$routeProvider
 
@@ -19,12 +19,6 @@ var app = angular.module('LdsWardInfo', ['firebase','pascalprecht.translate','ng
 	.otherwise({
 		redirectTo: '/home'
 	});
-
-	$translateProvider.useStaticFilesLoader({
-		prefix: 'assets/languages/',
-		suffix: '.json'
-	});
-	$translateProvider.uses('en');
 });
 
 
