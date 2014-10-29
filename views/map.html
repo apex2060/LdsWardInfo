@@ -1,5 +1,22 @@
-<div class="container" ng-model="MapCtrl">
-	<div class="well">
-		<div id="map-canvas"></div>
+<div class="container" ng-controller="MapCtrl">
+	<div class="row">
+		<div class="col-md-9">
+			<div class="well">
+				<div id="map-canvas"></div>
+			</div>
+			<div class="well">
+				<h2>{{family.coupleName}}</h2>
+				<p>Phone: {{family.householdInfo.phone}}</p>
+				<p>Email: {{family.householdInfo.email}}</p>
+				<p>Address: {{family.householdInfo.address.addr1}}</p>
+			</div>
+		</div>
+		<div class="col-md-3">
+			<ul class="list-group">
+				<li class="list-group-item" ng-repeat="marker in map.markers | orderBy: 'family.householdInfo.name'">
+					<a ng-click="tools.setMarker(marker)">{{marker.family.coupleName}}</a>
+				</li>
+			</ul>
+		</div>
 	</div>
 </div>

@@ -28,8 +28,9 @@ var MainCtrl = app.controller('MainCtrl', function($rootScope, $scope, $routePar
 
 
 
-var DirectoryCtrl = app.controller('DirectoryCtrl', function($rootScope, $scope, $routeParams, $location, $http, config, userService, directoryService){
+var DirectoryCtrl = app.controller('DirectoryCtrl', function($rootScope, $scope, $routeParams, $location, $http, config, userService, directoryService, tagService){
 	var tools = {
+		tag: tagService,
 		init:function(){
 			directoryService.list().then(function(directory){
 				$scope.directory = directory;
@@ -65,24 +66,100 @@ var DirectoryCtrl = app.controller('DirectoryCtrl', function($rootScope, $scope,
 
 
 var MapCtrl = app.controller('MapCtrl', function($rootScope, $scope, $routeParams, $location, $http, config, userService, directoryService){
+	var map = {
+		canvas: null,
+		markers: [],
+		latLngs: []
+	}
+	$scope.map = map;
+
+
 	var tools = {
+		setMarker:function(marker){
+			if($scope.marker)
+				tools.toggleAnimation($scope.marker)
+			$scope.marker = marker;
+			$scope.family = marker.family;
+			tools.toggleAnimation(marker)
+		},
+		toggleAnimation:function(marker){
+			marker.animated = !!!marker.animated;
+			if(marker.animated)
+				marker.setAnimation(google.maps.Animation.BOUNCE);
+			else
+				marker.setAnimation(null);
+			it.MapCtrl.$apply()
+		},
+		setFamily:function(){
+			tools.setMarker(this)
+		},
+		addMarker:function(family){
+			if(map.canvas){
+				var address = family.householdInfo.address;
+				if(address){
+					var latlng = new google.maps.LatLng(address.latitude, address.longitude);
+					var marker = new google.maps.Marker({
+						position: latlng,
+						title: family.coupleName,
+						family: family,
+						map: map.canvas
+					});
+
+					map.latLngs.push(latlng)
+					map.markers.push(marker)
+					google.maps.event.addListener(marker, 'click', tools.setFamily);
+
+					var latlngbounds = new google.maps.LatLngBounds();
+					for(var i=0; i<map.latLngs.length; i++)
+						latlngbounds.extend(map.latLngs[i]);
+					map.canvas.setCenter(latlngbounds.getCenter());
+					map.canvas.fitBounds(latlngbounds);
+				}
+			}else{
+				console.error('The map must be initialized first.')
+			}
+		},
 		init:function(){
 			directoryService.list().then(function(directory){
-				console.log(directory)
 				$scope.directory = directory;
-				function initialize() {
-					var mapOptions = {
-						center: { lat: -34.397, lng: 150.644},
-						zoom: 8
-					};
-					var map = new google.maps.Map(document.getElementById('map-canvas'),
-						mapOptions);
+
+				var mapOptions = {
+					center: { lat: 40.7500, lng: -111.8833 },
+					zoom: 10
+				};
+				map.canvas = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+
+				for(var i=0; i<directory.length; i++){
+					tools.addMarker(directory[i])
 				}
-				google.maps.event.addDomListener(window, 'load', initialize);
 			})
 		}
 	}
 	$scope.tools = tools;
 	tools.init();
 	it.MapCtrl=$scope;
+});
+
+
+
+
+
+
+var TagCtrl = app.controller('TagCtrl', function($rootScope, $scope, $routeParams, $location, $http, config, userService, tagService){
+	var tools = {
+		init:function(){
+			tagService.list().then(function(tags){
+				$scope.tags = tags;
+			})
+		},
+		add: function(){
+			tagService.add(prompt('Name this new tag: ')).then(function(saved){
+				tools.init();
+			})
+		}
+	}
+	$scope.tools = tools;
+	$scope.tagTool = tagService;
+	tools.init();
+	it.TagCtrl=$scope;
 });
