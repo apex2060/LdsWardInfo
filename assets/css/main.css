@@ -35,7 +35,8 @@ input.large{
 .modal-body>img{
 	max-width: 100%;
 }
-.fit-200{
+.fit{
+	display: block;
 	margin: 0px auto;
 	max-width: 100%;
 }
