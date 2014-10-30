@@ -5,6 +5,7 @@ app.factory('userService', function ($rootScope, $http, $q, config) {
 			if($rootScope.user)
 				deferred.resolve($rootScope.user);
 			else{
+				userService.init();
 				$rootScope.$on('authenticated', function(event,user) {
 					deferred.resolve(user);
 				});
@@ -85,6 +86,18 @@ app.factory('directoryService', function ($rootScope, $http, $q, config, userSer
 			})
 			return deferred.promise;
 		},
+		reload:function(){
+			var deferred = $q.defer();
+			userService.user().then(function(){
+				$http.get(config.parseRoot+'classes/Family?limit=900')
+				.success(function(data){
+					directory = data.results;
+					localStorage.directory = angular.toJson(directory)
+					deferred.resolve(directory);
+				})
+			});
+			return deferred.promise;
+		},
 		list:function(){
 			return directoryService.init();
 		}
@@ -97,68 +110,6 @@ app.factory('directoryService', function ($rootScope, $http, $q, config, userSer
 
 
 
-
-
-
-app.factory('tagService', function ($rootScope, $http, $q, config, userService) {
-	var tagService = {
-		Tag: Parse.Object.extend('Tag'),
-		init:function(){
-			var deferred = $q.defer();
-			var query = new Parse.Query(tagService.Tag);
-			userService.user().then(function(){
-				query.find({
-					success:function(results){
-						deferred.resolve(results);
-					}
-				})
-				// if(localStorage.tags){
-				// 	tags = angular.fromJson(localStorage.tags)
-				// 	deferred.resolve(tags);
-				// }else{
-				// 	$http.get(config.parseRoot+'classes/Tags?limit=100')
-				// 	.success(function(data){
-				// 		tags = data.results;
-				// 		localStorage.tags = angular.toJson(tags)
-				// 		deferred.resolve(tags);
-				// 	})
-				// }
-			})
-			return deferred.promise;
-		},
-		add:function(name, icon, description){
-			var deferred = $q.defer();
-			var tag = new tagService.Tag();
-			tag.set('name', name)
-			tag.set('icon', icon)
-			tag.set('description', description)
-			tag.save(null, {
-				success: function(saved) {
-					deferred.resolve(saved);
-				}
-			});
-			return deferred.promise;
-		},
-		hasTag:function(tag, family){
-			return (family && family.tags && family.tags.indexOf(tag.id) != -1);
-		},
-		toggle:function(tag, family){
-			if(!family.tags)
-				family.tags = [];
-			var tagIndex = family.tags.indexOf(tag.id);
-			if(tagIndex == -1)
-				family.tags.push(tag.id)
-			else
-				family.tags.splice(tagIndex, 1)
-			console.log(tag, family)
-		},
-		list:function(){
-			return tagService.init();
-		}
-	}
-	it.tagService = tagService;
-	return tagService;
-});
 
 
 

@@ -1,7 +1,10 @@
-var MainCtrl = app.controller('MainCtrl', function($rootScope, $scope, $routeParams, $location, $http, config, userService){
+var MainCtrl = app.controller('MainCtrl', function($rootScope, $scope, $routeParams, $location, $http, $q, config, userService, directoryService){
 	$rootScope.view = $routeParams.view;
 	$rootScope.id = $routeParams.id;
 	$rootScope.config = config;
+	$rootScope.userService = userService;
+
+	var Tag = Parse.Object.extend('Tag');
 
 	var tools = {
 		user: userService,
@@ -11,35 +14,160 @@ var MainCtrl = app.controller('MainCtrl', function($rootScope, $scope, $routePar
 			else
 				return 'views/login.html';
 		},
+		sync:function(){
+			tools.tag.reload().then(function(tags){
+				$rootScope.tags = tags;
+			})
+		},
 		init:function(){
 			if(!$rootScope.data){
-				userService.init();
 				$rootScope.data = {};
+				userService.user().then(function(){
+					tools.family.init();
+					tools.tag.init();
+				});
 				$scope.$on('$viewContentLoaded', function(event) {
 					// ga('send', 'pageview', $location.path());
 				});
 			}
-		}
-	}
-	$scope.tools = tools;
-	tools.init();
-	it.MainCtrl=$scope;
-});
+		},
+		tag: {
+			init:function(){
+				tools.tag.list().then(function(tags){
+					$rootScope.tags = tags;
+				})
+			},
+			reload:function(){
+				var deferred = $q.defer();
+				$http.get(config.parseRoot+'classes/Tag?limit=100').success(function(data){
+					tags = data.results;
+					localStorage.tags = angular.toJson(tags)
+					deferred.resolve(tags);
+				})
+				return deferred.promise;
+			},
+			list:function(){
+				var deferred = $q.defer();
+				if(localStorage.tags){
+					tags = angular.fromJson(localStorage.tags)
+					deferred.resolve(tags);
+				}else{
+					tools.tag.reload().then(function(tags){
+						deferred.resolve(tags);
+					})
+				}
+				return deferred.promise;
+			},
+			create: function(){
+				var tagName = prompt('Name this new tag: ');
+				if(tagName)
+					tools.tag.add(tagName);
+			},
+			add:function(name, icon, description){
+				var tag = new Tag();
+				tag.set('name', name)
+				tag.set('icon', icon)
+				tag.set('description', description)
+				tag.save(null, {
+					success: function(saved) {
+						tools.tag.reload().then(function(tags){
+							$rootScope.tags = tags;
+						})
+					}
+				});
+			},
+			edit:function(tag){
+				var toEdit = angular.copy(tag);
+				var newName = prompt('Type a new name for the tag: '+tag.name)
+				toEdit.name = newName;
+				if(newName)
+					$http.put(config.parseRoot+'classes/Tag/'+tag.objectId, toEdit).success(function(){
+						tools.tag.reload().then(function(tags){
+							$rootScope.tags = tags;
+						})
+					})
+			},
+			delete:function(tag){
+				if(confirm('Are you sure you want to delete the -'+tag.name+'- tag? '))
+				$http.delete(config.parseRoot+'classes/Tag/'+tag.objectId).success(function(){
+					tools.tag.reload().then(function(tags){
+						$rootScope.tags = tags;
+					})
+				})
+			},
+			choose: function(tag){
+				if($rootScope.data.tagState == 'filter')
+					tools.tag.filter(tag)
+				else if($rootScope.data.tagState == 'set')
+					tools.tag.toggle(tag.objectId, $scope.family)
+				else if($rootScope.data.tagState == 'edit')
+					return; //Do nothing
+			},
+			highlight: function(tag){
+				var cs = $rootScope.data.tagState;
+				if(cs == 'filter')
+					if($rootScope.data.filterTags)
+						return $rootScope.data.filterTags.indexOf(tag.objectId) != -1;
+					else
+						return false;
+				else if(cs == 'set')
+					return !!tools.family.hasTag(tag.objectId, $rootScope.family)
+				else
+					return false;
+			},
 
-
-
-var DirectoryCtrl = app.controller('DirectoryCtrl', function($rootScope, $scope, $routeParams, $location, $http, config, userService, directoryService, tagService){
-	var tools = {
-		tag: tagService,
-		init:function(){
-			directoryService.list().then(function(directory){
-				$scope.directory = directory;
-			})
+			toggle:function(tagId, family){
+				if(!family.tags)
+					family.tags = [];
+				var tagIndex = family.tags.indexOf(tagId);
+				if(tagIndex == -1)
+					family.tags.push(tagId)
+				else
+					family.tags.splice(tagIndex, 1)
+				tools.family.save(family)
+			},
+			state: function(state){
+				if(state)
+					$rootScope.data.tagState = state;
+				else
+					return $rootScope.data.tagState;
+			},
+			filter: function(tag){
+				if(!$rootScope.data.filterTags)
+					$rootScope.data.filterTags = []
+				var filterIndex = $rootScope.data.filterTags.indexOf(tag.objectId);
+				if(filterIndex==-1)
+					$rootScope.data.filterTags.push(tag.objectId)
+				else
+					$rootScope.data.filterTags.splice(filterIndex, 1)
+			}
 		},
 		family:{
-			show:function(family){
-				$scope.family = family;
-				$('#familyModal').modal('show');
+			init:function(){
+				directoryService.list().then(function(directory){
+					$rootScope.directory = directory
+				})
+			},
+			save:function(family){
+				var toSave = angular.copy(family)
+				delete toSave.objectId
+				delete toSave.createdAt
+				delete toSave.updatedAt
+				$http.put(config.parseRoot+'classes/Family/'+family.objectId, toSave).success(function(results){
+					directoryService.reload().then(function(directory){
+						$rootScope.directory = directory
+					})
+				})
+			},
+			close:function(){
+				$rootScope.family = false;
+				if(tools.tag.state()=='set')
+					tools.tag.state('filter');
+			},
+			set:function(family){
+				$rootScope.family = family;
+				$rootScope.data.tagState = 'set';
+				// $('#familyModal').modal('show');
 			},
 			map:function(family){
 				if(family){
@@ -56,12 +184,15 @@ var DirectoryCtrl = app.controller('DirectoryCtrl', function($rootScope, $scope,
 				}else{
 					return false;
 				}
+			},
+			hasTag:function(tagId, family){
+				return (tagId && family && family.tags && family.tags.indexOf(tagId) != -1);
 			}
 		}
 	}
 	$scope.tools = tools;
 	tools.init();
-	it.DirectoryCtrl=$scope;
+	it.MainCtrl=$scope;
 });
 
 
@@ -138,28 +269,4 @@ var MapCtrl = app.controller('MapCtrl', function($rootScope, $scope, $routeParam
 	$scope.tools = tools;
 	tools.init();
 	it.MapCtrl=$scope;
-});
-
-
-
-
-
-
-var TagCtrl = app.controller('TagCtrl', function($rootScope, $scope, $routeParams, $location, $http, config, userService, tagService){
-	var tools = {
-		init:function(){
-			tagService.list().then(function(tags){
-				$scope.tags = tags;
-			})
-		},
-		add: function(){
-			tagService.add(prompt('Name this new tag: ')).then(function(saved){
-				tools.init();
-			})
-		}
-	}
-	$scope.tools = tools;
-	$scope.tagTool = tagService;
-	tools.init();
-	it.TagCtrl=$scope;
 });

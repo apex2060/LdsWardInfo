@@ -1,5 +1,6 @@
 <div class="container" ng-controller="DirectoryCtrl">
 	<h1>Directory</h1>
+	<input class="large" type="text" placeholder="Filter" ng-model="search">
 	<table class="table table-hover">
 		<thead>
 			<tr>
@@ -11,7 +12,7 @@
 			</tr>
 		</thead>
 		<tbody>
-			<tr ng-repeat="family in directory | orderBy: 'householdInfo.name'">
+			<tr ng-repeat="family in directory | orderBy: 'householdInfo.name' | filter: search">
 				<td>{{family.coupleName}}</td>
 				<td>{{family.householdInfo.phone}}</td>
 				<td>{{family.householdInfo.email}}</td>
@@ -23,5 +24,4 @@
 			</tr> -->
 		</tbody>
 	</table>
-	<div ng-include="'partials/familyModal.html'"></div>
 </div>

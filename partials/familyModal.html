@@ -7,18 +7,18 @@
 			</div>
 			<div class="modal-body">
 				<img ng-src="{{tools.family.map(family)}}" alt="">
-				<div class="well" ng-controller="TagCtrl">
+				<div class="well">
 					<ul class="list-group">
 						<li class="list-group-item" ng-repeat="tag in tags">
 							<span>{{tag.get('name')}}</span>
 							<span class="label label-info pull-right" 
-								ng-hide="tagTool.hasTag(tag, $parent.family)" 
-								ng-click="tagTool.toggle(tag, $parent.family)">
+								ng-hide="tagService.hasTag(tag, $parent.family)" 
+								ng-click="tagService.toggle(tag, $parent.family)">
 								<i class="fa fa-tag"></i>
 							</span>
 							<span class="label label-danger pull-right" 
-								ng-show="tagTool.hasTag(tag, $parent.family)" 
-								ng-click="tagTool.toggle(tag, $parent.family)">
+								ng-show="tagService.hasTag(tag, $parent.family)" 
+								ng-click="tagService.toggle(tag, $parent.family)">
 								<i class="fa fa-trash"></i>
 							</span>
 						</li>
