@@ -35,6 +35,10 @@ input.large{
 .modal-body>img{
 	max-width: 100%;
 }
+.fit-200{
+	margin: 0px auto;
+	max-width: 100%;
+}
 #map-canvas{
 	width: 100%;
 	height: 500px;
