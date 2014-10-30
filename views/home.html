@@ -60,13 +60,15 @@
 						</button>
 						<h2>{{family.coupleName}}</h2>
 						<div class="row">
-							<img class="col-md-8" ng-src="{{tools.family.map(family)}}" alt="Map to house.">
 							<div class="col-md-4">
 								<ul class="list-group">
 									<li class="list-group-item">Phone: {{family.householdInfo.phone}}</li>
 									<li class="list-group-item">Email: {{family.householdInfo.email}}</li>
 									<li class="list-group-item">Address: {{family.householdInfo.address.addr1}}</li>
 								</ul>
+							</div>
+							<div class="col-md-8">
+								<img class="fit" ng-src="{{tools.family.map(family)}}" alt="Map to house.">
 							</div>
 						</div>
 						<ul class="list-group">
