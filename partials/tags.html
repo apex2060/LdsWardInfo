@@ -1,0 +1,32 @@
+<h1>Tags</h1>
+<div class="btn-group btn-group-justified" ng-init="tools.tag.state('filter')">
+	<div class="btn-group">
+		<button type="button" class="btn"
+		ng-class="{true:'btn-primary', false:'btn-default'}[tools.tag.state()=='filter']"
+		ng-click="tools.tag.state('filter')">Filter</button>
+	</div>
+	<div class="btn-group">
+		<button type="button" class="btn"
+		ng-class="{true:'btn-primary', false:'btn-default'}[tools.tag.state()=='set']"
+		ng-click="tools.tag.state('set')">Set</button>
+	</div>
+	<div class="btn-group">
+		<button type="button" class="btn"
+		ng-class="{true:'btn-primary', false:'btn-default'}[tools.tag.state()=='edit']"
+		ng-click="tools.tag.state('edit')">Edit</button>
+	</div>
+</div>
+<div class="tags">
+	<a class="label" 
+		ng-class="{true:'label-success', false:'label-default'}[tools.tag.highlight(tag)]"
+		ng-repeat="tag in tags" 
+		ng-click="tools.tag.choose(tag)">
+		<span>{{tag.name}}</span>
+		<i class="fa fa-pencil-square-o" ng-show="data.tagState=='edit'" 
+			ng-click="tools.tag.edit(tag)"></i>
+		<i class="fa fa-trash" ng-show="data.tagState=='edit'" 
+			ng-click="tools.tag.delete(tag)"></i>
+	</a>
+	<a class="label label-info" 
+		ng-click="tools.tag.create()">Add A Tag</a>
+</div>

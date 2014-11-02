@@ -1,0 +1,25 @@
+<button type="button" class="close" data-dismiss="modal" ng-click="tools.family.close()">
+	<span aria-hidden="true">&times;</span>
+	<span class="sr-only">Close Family</span>
+</button>
+<h2>{{family.coupleName}}</h2>
+<div class="row">
+	<div class="col-md-4">
+		<ul class="list-group">
+			<li class="list-group-item">Phone: {{family.householdInfo.phone}}</li>
+			<li class="list-group-item">Email: {{family.householdInfo.email}}</li>
+			<li class="list-group-item">Address: {{family.householdInfo.address.addr1}}</li>
+		</ul>
+	</div>
+	<div class="col-md-8">
+		<img class="fit" ng-src="{{tools.family.map(family)}}" alt="Map to house.">
+	</div>
+</div>
+<ul class="list-group">
+	<li class="list-group-item">{{family.headOfHousehold.name}}</li>
+	<li class="list-group-item">{{family.spouse.name}}</li>
+	<li class="list-group-item" ng-repeat="children in family.otherHouseholdMembers">
+		{{children.name}}
+	</li>
+</ul>
+<textarea>{{family}}</textarea>

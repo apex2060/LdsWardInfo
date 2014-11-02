@@ -5,6 +5,7 @@ var MainCtrl = app.controller('MainCtrl', function($rootScope, $scope, $routePar
 	$rootScope.userService = userService;
 
 	var Tag = Parse.Object.extend('Tag');
+	var Note = Parse.Object.extend('Note');
 
 	var tools = {
 		user: userService,
@@ -22,9 +23,11 @@ var MainCtrl = app.controller('MainCtrl', function($rootScope, $scope, $routePar
 		init:function(){
 			if(!$rootScope.data){
 				$rootScope.data = {};
+				$rootScope.temp = {};
 				userService.user().then(function(){
 					tools.family.init();
 					tools.tag.init();
+					tools.note.init();
 				});
 				$scope.$on('$viewContentLoaded', function(event) {
 					// ga('send', 'pageview', $location.path());
@@ -187,6 +190,62 @@ var MainCtrl = app.controller('MainCtrl', function($rootScope, $scope, $routePar
 			},
 			hasTag:function(tagId, family){
 				return (tagId && family && family.tags && family.tags.indexOf(tagId) != -1);
+			}
+		},
+		note:{
+			init:function(){
+				tools.note.list().then(function(notes){
+					$rootScope.notes = notes;
+				})
+			},
+			reload:function(){
+				var deferred = $q.defer();
+				$http.get(config.parseRoot+'classes/Note?limit=100').success(function(data){
+					notes = data.results;
+					localStorage.notes = angular.toJson(notes)
+					deferred.resolve(notes);
+				})
+				return deferred.promise;
+			},
+			list:function(){
+				var deferred = $q.defer();
+				if(localStorage.notes){
+					notes = angular.fromJson(localStorage.notes)
+					deferred.resolve(notes);
+				}else{
+					tools.note.reload().then(function(notes){
+						deferred.resolve(notes);
+					})
+				}
+				return deferred.promise;
+			},
+			create: function(){
+				var noteName = prompt('Name this new note: ');
+				if(noteName)
+					tools.note.add(noteName);
+			},
+			add:function(family, tNote){
+				if(family && tNote){
+					var note = angular.copy(tNote)
+					delete $rootScope.temp.note;
+					note.family = {"__op":"AddRelation","objects":[{"__type":"Pointer","className":"Family","objectId":family.objectId}]}
+					note.familyId = family.objectId;
+					$http.post(config.parseRoot+'classes/Note', note).success(function(){
+						tools.note.reload().then(function(notes){
+							$rootScope.notes = notes;
+						})
+					})
+				}
+			},
+			family:function(family){
+				var notes = $rootScope.notes
+				var familyNotes = [];
+				if(family && notes){
+					for(var i=0; i<notes.length; i++)
+						if(notes[i].familyId == family.objectId)
+							familyNotes.push(notes[i])
+					return familyNotes;
+				}
 			}
 		}
 	}
