@@ -31,6 +31,14 @@ input.large{
 	margin: 0px 2px;
 }
 
+
+
+
+.wardList{
+	height: 400px;
+	overflow: auto;
+}
+
 /*CSS Overrides*/
 .modal-body>img{
 	max-width: 100%;

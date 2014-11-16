@@ -3,6 +3,6 @@
 	<div class="list-group">
 		<a 	class="list-group-item"
 			ng-repeat="family in directory | orderBy: 'householdInfo.name' | filter: search | tags: data.filterTags"
-			ng-mouseover="tools.family.set(family)">{{family.coupleName}}</a>
+			ng-click="tools.family.set(family)">{{family.coupleName}}</a>
 	</div>
 </div>
