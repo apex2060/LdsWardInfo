@@ -329,3 +329,100 @@ var MapCtrl = app.controller('MapCtrl', function($rootScope, $scope, $routeParam
 	tools.init();
 	it.MapCtrl=$scope;
 });
+
+
+var OrgCtrl = app.controller('OrgCtrl', function($rootScope, $scope, $routeParams, $location, $http, $q, config, userService, dataService){
+	$rootScope.rp = $routeParams;
+	$scope.temp = {};
+	var Org 	= it.org 		= new dataService('Org');
+	var Family 	= it.family 	= new dataService('Family', 1000);
+	
+	$scope.alert = function(a){
+		alert(angular.toJson(a))
+	}
+	var tools = $scope.tools = {
+		org: {
+			current: function(){
+				if($scope.temp.org)
+					return $scope.temp.org.title;
+				else
+					return 'Organization'
+			},
+			select: function(org){
+				$scope.temp.org = org;
+			}
+		},
+		init: function(){
+			Org.tools.list().then(function(orgs){
+				$scope.orgs = orgs;
+			})
+			Family.tools.list().then(function(families){
+				var fams = $scope.families = [];
+				for(var i=0; i<families.length; i++){
+					var inds = [];
+					var fam = {
+						ref: families[i],
+						members: inds
+					};
+					inds.push(families[i].headOfHousehold);
+					if(families[i].spouse){
+						inds.push(families[i].spouse);
+					}
+					for(var m=0; m<families[i].otherHouseholdMembers.length; m++){
+						inds.push(families[i].otherHouseholdMembers[m]);
+					}
+					fams.push(fam);
+				}
+			})
+		},
+		add: function(){
+			var orgName = prompt('Org Name: ');
+			var org = {
+				title: orgName
+			}
+			Org.tools.save(org).then(function(data){
+				console.log('saved',data)
+			});
+		}
+	}
+	
+	tools.init();
+	it.OrgCtrl=$scope;
+});
+
+
+var GridCtrl = app.controller('GridCtrl', function($scope, $routeParams, $http, config, dataService){
+	var Grid = it.grid = new dataService('Grid');
+	var tools = $scope.tools = {
+		init: function(){
+			$scope.people = [{name:'Ryan'}, {name:'Kerri'}, {name:'Sara'}, {name:'Matthew'}, {name:'Ethan'}];
+			$scope.activities = [{name:'Attendance'}, {name:'Scriptures'}, {name:'Raise Hands'}, {name:'Memorise AOF'}];
+		},
+		people: {
+			add: function(){
+				$scope.people.push({name: prompt('Persons Name?')})
+			}
+		},
+		activity: {
+			add: function(){
+				$scope.activities.push({name: prompt('Activity Name?')})
+			},
+			remove: function(activity){
+				var i = $scope.activities.indexOf(activity);
+				$scope.activities.splice(i, 1)	;
+			},
+			direction: function(d){
+				$scope.d = d;
+			},
+			select: function(person, activity){
+				if(!person[activity.name])
+					person[activity.name] = 0
+				if($scope.d == '+')
+					person[activity.name] ++;
+				if($scope.d == '-')
+					person[activity.name] --;
+			}
+		}
+	}
+	tools.init();
+})

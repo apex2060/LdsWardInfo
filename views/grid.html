@@ -1,0 +1,16 @@
+<div class="page noselect" ng-controller="GridCtrl">
+	<div class="container-fluid">
+		<h1><a class="btn" ng-click="tools.activity.direction('+')">+</a> The Grid <a class="btn" ng-click="tools.activity.direction('-')">-</a></h1>
+		<table class="table table-bordered" style="table-layout:fixed;">
+			<tr>
+				<td><a class="btn btn-block btn-inverse" ng-click="tools.people.add()">Add Person</a></td>
+				<td ng-repeat="person in people">{{person.name}}</td>
+			</tr>
+			<tr ng-repeat="activity in activities">
+				<td>{{activity.name}} <a class="btn btn-sm btn-danger pull-right" ng-click="tools.activity.remove(activity)"><i class="fa fa-trash"></i></a></td>
+				<td ng-repeat="person in people" ng-click="tools.activity.select(person, activity)">{{person[activity.name]}}</td>
+			</tr>
+		</table>
+		<a class="btn btn-block btn-inverse" ng-click="tools.activity.add()">Add Activity</a>
+	</div>
+</div>

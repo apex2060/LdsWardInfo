@@ -113,6 +113,79 @@ app.factory('directoryService', function ($rootScope, $http, $q, config, userSer
 
 
 
+app.factory('dataService', function ($http, $q, config) {
+	return function(className, limit){
+		var ds = this;
+		this.className 	= className;
+		this.limit 		= limit;
+		this.list = [];
+		
+		if(!this.limit)
+			this.limit = 100;
+		
+		var tools = this.tools = {
+			init: function(){
+				return tools.list();
+			},
+			list: function(){
+				var deferred = $q.defer();
+				if(ds.list.length == 0)
+					$http.get('https://api.parse.com/1/classes/'+ds.className+'?limit='+ds.limit).success(function(data){
+						if(data.results)
+							ds.list = data.results;
+						deferred.resolve(ds.list);
+					})
+				else
+					deferred.resolve(ds.list);
+				return deferred.promise;
+			},
+			save: function(item){
+				if(item.objectId)
+					return ds.tools.update(item);
+				else
+					return ds.tools.add(item);
+			},
+			add: function(item){
+				var deferred = $q.defer();
+				$http.post('https://api.parse.com/1/classes/'+ds.className, item).success(function(data){
+					angular.extend(item, data);
+					ds.list.push(item);
+					deferred.resolve(ds.list);
+				})
+				return deferred.promise;
+			},
+			update: function(item){
+				var deferred = $q.defer();
+				var temp = angular.copy(item);
+				delete temp.createdAt;
+				delete temp.updatedAt;
+				delete temp.objectId;
+				$http.put('https://api.parse.com/1/classes/'+ds.className+'/'+item.objectId, temp).success(function(data){
+					angular.extend(item, data);
+					deferred.resolve(ds.list);
+				})
+				return deferred.promise;
+			},
+			delete: function(item){
+				var deferred = $q.defer();
+				if(confirm('Are you sure you want to delete this item?')){
+					$http.delete('https://api.parse.com/1/classes/'+ds.className+'/'+item.objectId).success(function(data){
+						var i = ds.list.indexOf(item);
+						ds.list.splice(i, 1)
+						deferred.resolve(ds.list);
+					})
+				}else{
+					deferred.resolve(ds.list);
+				}
+				return deferred.promise;
+			},
+		}
+		tools.init();
+	}
+
+	it.dataService = dataService;
+	return dataService;
+});
 
 
 
